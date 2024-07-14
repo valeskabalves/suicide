@@ -1,0 +1,106 @@
+
+
+```{r}
+install.packages("knitr")
+install.packages("kableExtra")
+install.packages("ggplot2")
+install.packages("dplyr")
+install.packages("readr")
+```
+
+```{r}
+---
+title: "Informe Técnico del Proyecto"
+author: "Valeska Alves"
+date: "`r Sys.Date()`"
+output: pdf_document
+---
+
+# Cargar paquetes necesarios
+library(knitr)
+library(kableExtra)
+library(ggplot2)
+library(dplyr)
+library(readr)
+
+# Cargar los datos
+file_path <- "../Datos/df.csv"
+if (!file.exists(file_path)) {
+  stop("El archivo 'df.csv' no se encontró en la ruta especificada: ", file_path)
+}
+df <- read.csv(file_path)
+
+# Filtrar los datos para el análisis
+df_filtered <- df %>%
+  filter(!is.na(suicide_total))
+
+# Crear resumen de indicadores
+summary_table <- df_filtered %>%
+  group_by(geo) %>%
+  summarise(
+    Total_Suicides = sum(suicide_total, na.rm = TRUE),
+    Average_Suicides = mean(suicide_total, na.rm = TRUE),
+    Max_Suicides = max(suicide_total, na.rm = TRUE),
+    Min_Suicides = min(suicide_total, na.rm = TRUE)
+  ) %>%
+  arrange(desc(Total_Suicides))
+```
+
+## Resumen de Indicadores
+
+El siguiente cuadro presenta un resumen de los indicadores clave por país, incluyendo el total de suicidios, el promedio de suicidios, y los valores máximos y mínimos observados.
+
+
+```{r summary-table, echo=FALSE}
+kable(summary_table, format = "latex", booktabs = TRUE) %>%
+  kable_styling(latex_options = c("striped", "hold_position"))
+```
+
+```{r}
+### 4. Gráfico de Resultados Principales
+
+```markdown
+## Resultados Principales
+
+El gráfico a continuación muestra la tendencia de suicidios totales a lo largo del tiempo para los países con el mayor número total de suicidios.
+```
+
+
+
+```{r main-results-plot, echo=FALSE, fig.cap="Tendencia de Suicidios Totales por Año"}
+# Filtrar los 5 principales países con mayor número de suicidios totales
+top_countries <- summary_table$geo[1:5]
+df_top_countries <- df_filtered %>%
+  filter(geo %in% top_countries)
+
+# Crear gráfico
+ggplot(df_top_countries, aes(x = time, y = suicide_total, color = geo)) +
+  geom_line() +
+  labs(
+    title = "Tendencia de Suicidios Totales por Año",
+    x = "Año",
+    y = "Número de Suicidios",
+    color = "País"
+  ) +
+  theme_minimal()
+```
+
+
+### 5. Explicaciones y Conclusiones
+
+```markdown
+## Explicaciones y Conclusiones
+
+En este informe, se analizaron los datos de suicidios a nivel global con el objetivo de identificar las tendencias y patrones más significativos. A continuación se presentan los principales hallazgos y su relación con los objetivos del proyecto:
+
+- **Resumen de Indicadores**: Se observó que los países con el mayor número total de suicidios presentan también las mayores variaciones anuales en los valores observados.
+- **Tendencia Temporal**: El análisis de la tendencia temporal indicó un patrón fluctuante en el número de suicidios anuales, destacando la necesidad de intervenciones continuas y adaptadas a las condiciones cambiantes de cada país.
+
+Estos resultados resaltan la importancia de un enfoque multifacético para abordar la prevención del suicidio, considerando las variaciones regionales y temporales identificadas en este análisis.
+```
+
+
+```{r}
+rmarkdown::render("informe_tecnico.Rmd")
+```
+
