@@ -1,0 +1,194 @@
+---
+title: "Análisis de Suicidio"
+author: "Valeska Alves"
+output: 
+  flexdashboard::flex_dashboard:
+    orientation: columns
+    vertical_layout: fill
+runtime: shiny
+---
+
+```{r setup, include=FALSE}
+library(flexdashboard)
+library(tidyverse)
+library(readr)
+library(dplyr)
+library(shiny)
+```
+
+```{r, include=FALSE}
+df <- read.csv("df.csv")
+```
+
+```{r, include=FALSE}
+anos <- unique(df$time)
+paises <- unique(df$geo)
+idades <- c("suicide_0_14", "suicide_15_29", "suicide_30_44", "suicide_45_59", "suicide_60plus")
+generos <- c("suicide_men", "suicide_women")
+```
+
+
+**Filtros**
+
+```{r}
+fluidRow(
+  column(3, selectInput("ano", "Ano:", choices = c("Todos", anos), selected = "Todos")),
+  column(3, selectInput("pais", "País:", choices = c("Todos", paises), selected = "Todos")),
+  column(3, selectInput("idade", "Idade:", choices = c("Todos", idades), selected = "Todos")),
+  column(3, selectInput("genero", "Gênero:", choices = c("Todos", generos), selected = "Todos"))
+)
+```
+
+
+Column {data-width=500}
+-----------------------------------------------------------------------
+
+### Chart A
+
+```{r}
+renderPlot({
+  observeEvent(input$reset, {
+    updateSelectInput(session, "ano", selected = "Todos")
+    updateSelectInput(session, "pais", selected = "Todos")
+    updateSelectInput(session, "idade", selected = "Todos")
+    updateSelectInput(session, "genero", selected = "Todos")
+  })
+  
+  filtered_data <- df
+  
+  if (input$ano != "Todos") {
+    filtered_data <- filtered_data %>% filter(time == input$ano)
+  }
+  if (input$pais != "Todos") {
+    filtered_data <- filtered_data %>% filter(geo == input$pais)
+  }
+  if (input$idade != "Todos") {
+    filtered_data <- filtered_data %>% filter(!is.na(!!sym(input$idade)))
+  }
+  if (input$genero != "Todos") {
+    filtered_data <- filtered_data %>% filter(!is.na(!!sym(input$genero)))
+  }
+  
+  filtered_data %>%
+    group_by(time) %>%
+    summarise(suicide_total = sum(suicide_total, na.rm = TRUE)) %>%
+    ggplot(aes(x = time, y = suicide_total)) +
+    geom_line() +
+    labs(title = "Suicídios Totais por Ano", x = "Ano", y = "Número de Suicídios")
+})
+```
+
+### Chart C
+
+```{r}
+renderPlot({
+  observeEvent(input$reset, {
+    updateSelectInput(session, "ano", selected = "Todos")
+    updateSelectInput(session, "pais", selected = "Todos")
+    updateSelectInput(session, "idade", selected = "Todos")
+    updateSelectInput(session, "genero", selected = "Todos")
+  })
+  
+  filtered_data <- df
+  
+  if (input$ano != "Todos") {
+    filtered_data <- filtered_data %>% filter(time == input$ano)
+  }
+  if (input$pais != "Todos") {
+    filtered_data <- filtered_data %>% filter(geo == input$pais)
+  }
+  if (input$idade != "Todos") {
+    filtered_data <- filtered_data %>% filter(!is.na(!!sym(input$idade)))
+  }
+  if (input$genero != "Todos") {
+    filtered_data <- filtered_data %>% filter(!is.na(!!sym(input$genero)))
+  }
+  
+  latest_year <- "2000"
+  filtered_data %>%
+    filter(time == latest_year) %>%
+    gather(key = "age_group", value = "suicides", suicide_0_14:suicide_60plus) %>%
+    filter(!is.na(suicides)) %>%
+    ggplot(aes(x = age_group, y = suicides)) +
+    geom_bar(stat = "identity") +
+    labs(title = paste("Suicídios por Faixa Etária em", latest_year), x = "Faixa Etária", y = "Número de Suicídios")
+})
+```
+
+Column {data-width=500}
+-----------------------------------------------------------------------
+
+### Chart B
+
+```{r}
+renderPlot({
+  observeEvent(input$reset, {
+    updateSelectInput(session, "ano", selected = "Todos")
+    updateSelectInput(session, "pais", selected = "Todos")
+    updateSelectInput(session, "idade", selected = "Todos")
+    updateSelectInput(session, "genero", selected = "Todos")
+  })
+  
+  filtered_data <- df
+  
+  if (input$ano != "Todos") {
+    filtered_data <- filtered_data %>% filter(time == input$ano)
+  }
+  if (input$pais != "Todos") {
+    filtered_data <- filtered_data %>% filter(geo == input$pais)
+  }
+  if (input$idade != "Todos") {
+    filtered_data <- filtered_data %>% filter(!is.na(!!sym(input$idade)))
+  }
+  if (input$genero != "Todos") {
+    filtered_data <- filtered_data %>% filter(!is.na(!!sym(input$genero)))
+  }
+  
+  latest_year <- "2000"
+  filtered_data %>%
+    filter(time == latest_year) %>%
+    gather(key = "age_group", value = "suicides", suicide_0_14:suicide_60plus) %>%
+    filter(!is.na(suicides)) %>%
+    ggplot(aes(x = age_group, y = suicides)) +
+    geom_bar(stat = "identity") +
+    labs(title = paste("Suicídios por Faixa Etária em", latest_year), x = "Faixa Etária", y = "Número de Suicídios")
+})
+```
+
+### Chart C
+
+```{r}
+renderPlot({
+  observeEvent(input$reset, {
+    updateSelectInput(session, "ano", selected = "Todos")
+    updateSelectInput(session, "pais", selected = "Todos")
+    updateSelectInput(session, "idade", selected = "Todos")
+    updateSelectInput(session, "genero", selected = "Todos")
+  })
+  
+  filtered_data <- df
+  
+  if (input$ano != "Todos") {
+    filtered_data <- filtered_data %>% filter(time == input$ano)
+  }
+  if (input$pais != "Todos") {
+    filtered_data <- filtered_data %>% filter(geo == input$pais)
+  }
+  if (input$idade != "Todos") {
+    filtered_data <- filtered_data %>% filter(!is.na(!!sym(input$idade)))
+  }
+  if (input$genero != "Todos") {
+    filtered_data <- filtered_data %>% filter(!is.na(!!sym(input$genero)))
+  }
+  
+  latest_year <- "2000"
+  filtered_data %>%
+    filter(time == latest_year) %>%
+    gather(key = "age_group", value = "suicides", suicide_0_14:suicide_60plus) %>%
+    filter(!is.na(suicides)) %>%
+    ggplot(aes(x = age_group, y = suicides)) +
+    geom_bar(stat = "identity") +
+    labs(title = paste("Suicídios por Faixa Etária em", latest_year), x = "Faixa Etária", y = "Número de Suicídios")
+})
+```
+
