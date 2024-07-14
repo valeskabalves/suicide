@@ -1,0 +1,33 @@
+```{r setup, include=FALSE}
+library(tidyverse)
+library(readr)
+library(dplyr)
+```
+
+```{r}
+df <- read.csv("df.csv")
+```
+
+```{r, warning=FALSE}
+# Exibir os 10 países mais influentes
+top_countries <- c("usa", "gbr", "jpn", "fra", "can", "esp")
+
+geo_names <- c("usa" = "Estados Unidos", "gbr" = "Reino Unido", "jpn" = "Japão", 
+               "fra" = "França", "can" = "Canadá", "esp" = "Espanha")
+
+filtered_df <- df %>% filter(geo %in% top_countries)
+filtered_df <- filtered_df %>% mutate(country_name = geo_names[geo])
+```  
+
+```{r}
+head(filtered_df)
+```
+
+
+```{r, warning=FALSE}
+# Nome do arquivo CSV de saída
+output_file <- "filtered_df.csv"
+
+# Exportar o dataframe para um arquivo CSV
+write.csv(filtered_df, file = output_file, row.names = FALSE)
+```
