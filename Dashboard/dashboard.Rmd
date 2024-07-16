@@ -4,11 +4,12 @@ author: "Valeska Alves"
 output: 
   flexdashboard::flex_dashboard:
     orientation: columns
-    vertical_layout: fill
+    vertical_layout: scroll
 runtime: shiny
 ---
 
 ```{r setup, include=FALSE}
+#devtools::install_github("r-lib/conflicted") 
 library(flexdashboard)
 library(tidyverse)
 library(readr)
@@ -143,15 +144,17 @@ renderPlot({
   if (input$genero != "Todos") {
     filtered_data <- filtered_data %>% filter(!is.na(!!sym(input$genero)))
   }
-  
-  latest_year <- "2000"
+
+  # Generar el gráfico de correlación
   filtered_data %>%
-    filter(time == latest_year) %>%
     gather(key = "age_group", value = "suicides", suicide_0_14:suicide_60plus) %>%
     filter(!is.na(suicides)) %>%
     ggplot(aes(x = age_group, y = suicides)) +
-    geom_bar(stat = "identity") +
-    labs(x = "Faixa Etária", y = "Número de Suicídios")
+    geom_point(aes(color = geo)) +
+    geom_smooth(method = "lm", se = FALSE) +
+    labs(x = "Faixa Etária", y = "Número de Suicidios") +
+    theme_minimal() +
+    theme(axis.text.x = element_text(angle = 45, hjust = 1))
 })
 ```
 
@@ -181,14 +184,15 @@ renderPlot({
     filtered_data <- filtered_data %>% filter(!is.na(!!sym(input$genero)))
   }
   
-  latest_year <- "2000"
+  # Generar los boxplots
   filtered_data %>%
-    filter(time == latest_year) %>%
     gather(key = "age_group", value = "suicides", suicide_0_14:suicide_60plus) %>%
     filter(!is.na(suicides)) %>%
-    ggplot(aes(x = age_group, y = suicides)) +
-    geom_bar(stat = "identity") +
-    labs(x = "Faixa Etária", y = "Número de Suicídios")
+    ggplot(aes(x = factor(time), y = suicides)) +
+    geom_boxplot(aes(fill = geo)) +
+    labs(x = "Año", y = "Número de Suicidios") +
+    theme_minimal() +
+    theme(axis.text.x = element_text(angle = 45, hjust = 1))
 })
 ```
 
@@ -266,15 +270,16 @@ renderPlot({
   if (input$genero != "Todos") {
     filtered_data <- filtered_data %>% filter(!is.na(!!sym(input$genero)))
   }
-  
-  latest_year <- "2000"
+
   filtered_data %>%
-    filter(time == latest_year) %>%
-    gather(key = "age_group", value = "suicides", suicide_0_14:suicide_60plus) %>%
+    gather(key = "gender", value = "suicides", suicide_men, suicide_women) %>%
     filter(!is.na(suicides)) %>%
-    ggplot(aes(x = age_group, y = suicides)) +
-    geom_bar(stat = "identity") +
-    labs(x = "Faixa Etária", y = "Número de Suicídios")
+    ggplot(aes(x = interaction(gender), y = suicides, fill = gender)) +
+    geom_bar(stat = "identity", position = "dodge") +
+    labs(x = "Año y Género", y = "Número de Suicidios") +
+    theme_minimal() +
+    scale_x_discrete(labels = function(x) gsub("\\.", " - ", x)) +
+    theme(axis.text.x = element_text(angle = 45, hjust = 1))
 })
 ```
 
@@ -303,15 +308,17 @@ renderPlot({
   if (input$genero != "Todos") {
     filtered_data <- filtered_data %>% filter(!is.na(!!sym(input$genero)))
   }
-  
-  latest_year <- "2000"
+
+  # Generar el gráfico de correlación
   filtered_data %>%
-    filter(time == latest_year) %>%
-    gather(key = "age_group", value = "suicides", suicide_0_14:suicide_60plus) %>%
+    gather(key = "gender", value = "suicides", suicide_men, suicide_women) %>%
     filter(!is.na(suicides)) %>%
-    ggplot(aes(x = age_group, y = suicides)) +
-    geom_bar(stat = "identity") +
-    labs(x = "Faixa Etária", y = "Número de Suicídios")
+    ggplot(aes(x = gender, y = suicides, color = gender)) +
+    geom_point(aes(color = geo)) +
+    geom_smooth(method = "lm", se = FALSE) +
+    labs(x = "Género", y = "Número de Suicidios") +
+    theme_minimal() +
+    theme(axis.text.x = element_text(angle = 45, hjust = 1))
 })
 ```
 
@@ -330,10 +337,10 @@ renderPlot({
   filtered_data <- df
   
   if (input$ano != "Todos") {
-    filtered_data <- filtered_data %>% filter(time == input$ano)
+    filtered_data <- filtered_data %>% filter(time %in% input$ano)
   }
   if (input$pais != "Todos") {
-    filtered_data <- filtered_data %>% filter(geo == input$pais)
+    filtered_data <- filtered_data %>% filter(geo %in% input$pais)
   }
   if (input$idade != "Todos") {
     filtered_data <- filtered_data %>% filter(!is.na(!!sym(input$idade)))
@@ -341,14 +348,14 @@ renderPlot({
   if (input$genero != "Todos") {
     filtered_data <- filtered_data %>% filter(!is.na(!!sym(input$genero)))
   }
-  
-  latest_year <- "2000"
+
+  # Generar el gráfico de correlación
   filtered_data %>%
-    filter(time == latest_year) %>%
-    gather(key = "age_group", value = "suicides", suicide_0_14:suicide_60plus) %>%
-    filter(!is.na(suicides)) %>%
-    ggplot(aes(x = age_group, y = suicides)) +
-    geom_bar(stat = "identity") +
-    labs(x = "Faixa Etária", y = "Número de Suicídios")
+    ggplot(aes(x = geo, y = suicide_total)) +
+    geom_point(aes(color = geo)) +
+    geom_smooth(method = "lm", se = FALSE) +
+    labs(x = "Países", y = "Número de Suicidios") +
+    theme_minimal() +
+    theme(axis.text.x = element_text(angle = 45, hjust = 1))
 })
 ```
