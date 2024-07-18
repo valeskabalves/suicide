@@ -1,106 +1,92 @@
-
+---
+title: "Informe Técnico sobre Suicidio"
+author: "Valeska Alves"
+output: html_document
+---
 
 ```{r}
-install.packages("knitr")
-install.packages("kableExtra")
-install.packages("ggplot2")
-install.packages("dplyr")
-install.packages("readr")
+#install.packages("kableExtra")
+library(tidyverse)
+library(knitr)
+library(kableExtra)
+```
+
+# Introducción
+
+Este informe técnico presenta un resumen de los principales hallazgos de nuestro proyecto sobre las tasas de suicidio en diferentes países. Los resultados se presentan en forma de tablas y gráficos, y se explican en relación con los objetivos marcados.
+
+# Objetivos
+
+	1.	Identificar las tendencias temporales de las tasas de suicidio en diferentes países.
+	2.	Analizar la variación de las tasas de suicidio entre diferentes grupos de edad y género.
+	3.	Detectar picos y caídas en las tasas de suicidio y su correlación con eventos específicos.
+	4.	Explorar las correlaciones significativas entre las tasas de suicidio de diferentes grupos de edad y género.
+	5.	Identificar valores atípicos en las tasas de suicidio y los países y años asociados.
+	
+	
+# Tabla Resumen de Indicadores
+```{r}
+# Leer y procesar los datos
+df <- read.csv("filtered_df.csv")
 ```
 
 ```{r}
----
-title: "Informe Técnico del Proyecto"
-author: "Valeska Alves"
-date: "`r Sys.Date()`"
-output: pdf_document
----
+df <- df %>%
+  mutate(year_category = case_when(
+    time <= 1980 ~ "Hasta 1980",
+    time <= 1990 ~ "1981 a 1990",
+    time <= 2000 ~ "1991 a 2000",
+    time <= 2010 ~ "2001 a 2010",
+    time <= 2020 ~ "2011 a 2020",
+    TRUE ~ "Después de 2020"
+  ))
 
-# Cargar paquetes necesarios
-library(knitr)
-library(kableExtra)
-library(ggplot2)
-library(dplyr)
-library(readr)
-
-# Cargar los datos
-file_path <- "../Datos/df.csv"
-if (!file.exists(file_path)) {
-  stop("El archivo 'df.csv' no se encontró en la ruta especificada: ", file_path)
-}
-df <- read.csv(file_path)
-
-# Filtrar los datos para el análisis
-df_filtered <- df %>%
-  filter(!is.na(suicide_total))
-
-# Crear resumen de indicadores
-summary_table <- df_filtered %>%
-  group_by(geo) %>%
+# Calcular indicadores resumen
+summary_table <- df %>%
+  group_by(year_category) %>%
   summarise(
     Total_Suicides = sum(suicide_total, na.rm = TRUE),
     Average_Suicides = mean(suicide_total, na.rm = TRUE),
-    Max_Suicides = max(suicide_total, na.rm = TRUE),
-    Min_Suicides = min(suicide_total, na.rm = TRUE)
-  ) %>%
-  arrange(desc(Total_Suicides))
+    Median_Suicides = median(suicide_total, na.rm = TRUE)
+  )
+
+# Mostrar la tabla en formato bonito
+kable(summary_table, caption = "Tabla Resumen de Indicadores por Categoría de Año") %>%
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed"))
 ```
 
-## Resumen de Indicadores
+# Gráfico de Resultados Principales
 
-El siguiente cuadro presenta un resumen de los indicadores clave por país, incluyendo el total de suicidios, el promedio de suicidios, y los valores máximos y mínimos observados.
-
-
-```{r summary-table, echo=FALSE}
-kable(summary_table, format = "latex", booktabs = TRUE) %>%
-  kable_styling(latex_options = c("striped", "hold_position"))
-```
+A continuación, se presenta un gráfico que muestra la tendencia de las tasas de suicidio a lo largo del tiempo para los principales países.
 
 ```{r}
-### 4. Gráfico de Resultados Principales
+# Filtrar y preparar los datos para el gráfico
+top_countries <- c("usa", "gbr", "jpn", "fra", "can", "esp")
+filtered_df <- df %>% filter(geo %in% top_countries)
 
-```markdown
-## Resultados Principales
+custom_colors <- c(
+  "usa" = "blue",
+  "gbr" = "cyan",
+  "jpn" = "green",
+  "fra" = "orange",
+  "can" = "magenta",
+  "esp" = "red"
+)
 
-El gráfico a continuación muestra la tendencia de suicidios totales a lo largo del tiempo para los países con el mayor número total de suicidios.
-```
-
-
-
-```{r main-results-plot, echo=FALSE, fig.cap="Tendencia de Suicidios Totales por Año"}
-# Filtrar los 5 principales países con mayor número de suicidios totales
-top_countries <- summary_table$geo[1:5]
-df_top_countries <- df_filtered %>%
-  filter(geo %in% top_countries)
-
-# Crear gráfico
-ggplot(df_top_countries, aes(x = time, y = suicide_total, color = geo)) +
+# Generar el gráfico
+ggplot(filtered_df, aes(x = time, y = suicide_total, color = geo)) +
   geom_line() +
-  labs(
-    title = "Tendencia de Suicidios Totales por Año",
-    x = "Año",
-    y = "Número de Suicidios",
-    color = "País"
-  ) +
+  scale_color_manual(values = custom_colors) +
+  labs(title = "Tendencia de las Tasas de Suicidio por Año y País", x = "Año", y = "Tasa de Suicidio (por 100000 personas)") +
   theme_minimal()
 ```
 
+# Resultados
 
-### 5. Explicaciones y Conclusiones
+El análisis de los datos revela varias tendencias interesantes:
 
-```markdown
-## Explicaciones y Conclusiones
+	1.	Tendencias Temporales: Los gráficos de línea muestran que algunos países como Estados Unidos y Japón tienen tendencias fluctuantes, mientras que países como Francia y Canadá muestran una tendencia decreciente después de picos iniciales.
+	2.	Variación por Grupos de Edad y Género: Las tasas de suicidio varían significativamente entre diferentes grupos de edad y género. Los hombres suelen tener tasas de suicidio más altas en comparación con las mujeres.
+	3.	Picos y Caídas: Algunos países muestran picos específicos en ciertos años, lo cual podría estar relacionado con eventos socioeconómicos o políticas implementadas en esos periodos.
 
-En este informe, se analizaron los datos de suicidios a nivel global con el objetivo de identificar las tendencias y patrones más significativos. A continuación se presentan los principales hallazgos y su relación con los objetivos del proyecto:
-
-- **Resumen de Indicadores**: Se observó que los países con el mayor número total de suicidios presentan también las mayores variaciones anuales en los valores observados.
-- **Tendencia Temporal**: El análisis de la tendencia temporal indicó un patrón fluctuante en el número de suicidios anuales, destacando la necesidad de intervenciones continuas y adaptadas a las condiciones cambiantes de cada país.
-
-Estos resultados resaltan la importancia de un enfoque multifacético para abordar la prevención del suicidio, considerando las variaciones regionales y temporales identificadas en este análisis.
-```
-
-
-```{r}
-rmarkdown::render("informe_tecnico.Rmd")
-```
-
+Estos hallazgos subrayan la importancia de adoptar enfoques personalizados para la prevención del suicidio, considerando las variaciones demográficas y temporales.
