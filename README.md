@@ -1,8 +1,8 @@
-# Objetivo del Trabajo
+# Objetivo
 
 El objetivo de este trabajo es desarrollar un dashboard interactivo dirigido a investigadores y profesionales de la salud que trabajan en la prevención del suicidio y el apoyo psicológico. Este dashboard tiene como objetivo proporcionar información detallada sobre las tendencias y variaciones de las tasas de suicidio a lo largo del tiempo, con el fin de ayudar en la toma de decisiones y en la implementación de políticas eficaces de prevención.
 
-## Audiencia y Objetivo
+## Audiencia
 
 **Destinatarios**: El dashboard está destinado a investigadores y profesionales de la salud pública que trabajan directamente en la prevención del suicidio y el apoyo psicológico.
 
