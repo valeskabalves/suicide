@@ -11,43 +11,50 @@ library(kableExtra)
 library(ggplot2)
 ```
 
-# Introducción
+## Introducción
 
 Esta presentación resume los principales hallazgos del proyecto sobre las tasas 
 de suicidio en diferentes países, con un enfoque en los objetivos marcados.
 
-# Objetivos
+## Objetivos
 
-	1.	Identificar las tendencias temporales de las tasas de suicidio en 
-	diferentes países.
-	2.	Analizar la variación de las tasas de suicidio entre diferentes grupos de 
-	edad y género.
-	3.	Detectar picos y caídas en las tasas de suicidio y su correlación con 
-	eventos específicos.
-	4.	Explorar las correlaciones significativas entre las tasas de suicidio de 
-	diferentes grupos de edad y género.
-	5.	Identificar valores atípicos en las tasas de suicidio y los países y años 
-	asociados.
+1.	Identificar las tendencias temporales de las tasas de suicidio en 
+diferentes países.
+
+2.	Analizar la variación de las tasas de suicidio entre diferentes 
+grupos de edad y género.
+
+3.	Detectar picos y caídas en las tasas de suicidio y su correlación con 
+eventos específicos.
+
+4.	Explorar las correlaciones significativas entre las tasas de suicidio de 
+diferentes grupos de edad y género.
+
+5.	Identificar valores atípicos en las tasas de suicidio y los países y años 
+asociados.
 	
-# Tabla Resumen de Indicadores
+## Tabla Resumen de Indicadores
 
 ```{r, echo=FALSE}
 # Leer y procesar los datos
 df <- read.csv("filtered_df.csv")
 
-df <- df %>%
+
+# Filtrar los datos para incluir solo los años de 1955 a 2015
+df <- df %>% filter(time >= 1955 & time <= 2015)
+
+# Dividir los años en hasta 5 períodos
+df <- df %>% 
   mutate(year_category = case_when(
-    time <= 1980 ~ "Hasta 1980",
-    time <= 1990 ~ "1981 a 1990",
-    time <= 2000 ~ "1991 a 2000",
-    time <= 2010 ~ "2001 a 2010",
-    time <= 2020 ~ "2011 a 2020",
-    TRUE ~ "Después de 2020"
+    time >= 1955 & time <= 1969 ~ "1955 a 1969",
+    time >= 1970 & time <= 1984 ~ "1970 a 1984",
+    time >= 1985 & time <= 1999 ~ "1985 a 1999",
+    time >= 2000 & time <= 2015 ~ "2000 a 2015",
   ))
 
 # Calcular indicadores resumen
-summary_table <- df %>%
-  group_by(year_category) %>%
+summary_table <- df %>% 
+  group_by(year_category) %>% 
   summarise(
     Total_Suicides = sum(suicide_total, na.rm = TRUE),
     Average_Suicides = mean(suicide_total, na.rm = TRUE),
@@ -59,8 +66,8 @@ kable(summary_table, caption = "Tabla Resumen de Indicadores por Categoría de A
   kable_styling(bootstrap_options = c("striped", "hover", "condensed"))
 ```
 
-# Gráfico de Resultados Principales
-```{r, echo=FALSE}
+## Gráfico de Resultados Principales
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
 # Filtrar y preparar los datos para el gráfico
 top_countries <- c("usa", "gbr", "jpn", "fra", "can", "esp")
 filtered_df <- df %>% filter(geo %in% top_countries)
@@ -82,28 +89,20 @@ ggplot(filtered_df, aes(x = time, y = suicide_total, color = geo)) +
   theme_minimal()
 ```
 
-# Explicación de Resultados
+## Explicación de Resultados
 
-## Tendencias Temporales
+### Tendencias Temporales
 
-Los gráficos de línea muestran que algunos países como Estados Unidos y Japón 
-tienen tendencias fluctuantes, mientras que países como Francia y Canadá 
-muestran una tendencia decreciente después de picos iniciales.
+Los gráficos de línea muestran que algunos países como Estados Unidos y Japón tienen tendencias fluctuantes, mientras que países como Francia y Canadá muestran una tendencia decreciente después de picos iniciales.
 
-Variación por Grupos de Edad y Género
+### Variación por Grupos de Edad y Género
 
-Las tasas de suicidio varían significativamente entre diferentes grupos de 
-edad y género. Los hombres suelen tener tasas de suicidio más altas en 
-comparación con las mujeres.
+Las tasas de suicidio varían significativamente entre diferentes grupos de edad y género. Los hombres suelen tener tasas de suicidio más altas en comparación con las mujeres.
 
-## Picos y Caídas
+### Picos y Caídas
 
-Algunos países muestran picos específicos en ciertos años, lo cual podría estar 
-relacionado con eventos socioeconómicos o políticas implementadas en esos 
-periodos.
+Algunos países muestran picos específicos en ciertos años, lo cual podría estar relacionado con eventos socioeconómicos o políticas implementadas en esos periodos.
 
 ## Conclusiones
 
-Estos hallazgos subrayan la importancia de adoptar enfoques personalizados para 
-la prevención del suicidio, considerando las variaciones demográficas y 
-temporales.
+Estos hallazgos subrayan la importancia de adoptar enfoques personalizados para la prevención del suicidio, considerando las variaciones demográficas y temporales.
