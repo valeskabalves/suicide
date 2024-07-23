@@ -1,49 +1,54 @@
 ---
 title: "Informe Técnico sobre Suicidio"
 author: "Valeska Alves"
-output: html_document
+output:
+  pdf_document: default
+  html_document: default
 ---
 
-```{r}
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
 #install.packages("kableExtra")
 library(tidyverse)
 library(knitr)
 library(kableExtra)
 ```
 
-# Introducción
+## Introducción
 
-Este informe técnico presenta un resumen de los principales hallazgos de nuestro proyecto sobre las tasas de suicidio en diferentes países. Los resultados se presentan en forma de tablas y gráficos, y se explican en relación con los objetivos marcados.
+Este informe presenta un resumen de las principales conclusiones del análisis de datos del proyecto Gapminder sobre las tasas de suicidio en diferentes países, incluyendo Canadá, España, Estados Unidos, Francia, Japón y Reino Unido, durante el período de 1955 a 2015. Los resultados se presentan en forma de tablas y gráficos, y se explican en relación con los objetivos marcados.
 
-# Objetivos
+
+## Objetivos
 
 	1.	Identificar las tendencias temporales de las tasas de suicidio en diferentes países.
 	2.	Analizar la variación de las tasas de suicidio entre diferentes grupos de edad y género.
 	3.	Detectar picos y caídas en las tasas de suicidio y su correlación con eventos específicos.
-	4.	Explorar las correlaciones significativas entre las tasas de suicidio de diferentes grupos de edad y género.
+	4.	Explorar las correlaciones significativas entre las tasas de suicidio de diferentes 
+	grupos de edad y género.
 	5.	Identificar valores atípicos en las tasas de suicidio y los países y años asociados.
 	
 	
-# Tabla Resumen de Indicadores
+## Tabla Resumen de Indicadores
 ```{r}
 # Leer y procesar los datos
 df <- read.csv("filtered_df.csv")
-```
 
-```{r}
-df <- df %>%
+
+# Filtrar los datos para incluir solo los años de 1955 a 2015
+df <- df %>% filter(time >= 1955 & time <= 2015)
+
+# Dividir los años en hasta 5 períodos
+df <- df %>% 
   mutate(year_category = case_when(
-    time <= 1980 ~ "Hasta 1980",
-    time <= 1990 ~ "1981 a 1990",
-    time <= 2000 ~ "1991 a 2000",
-    time <= 2010 ~ "2001 a 2010",
-    time <= 2020 ~ "2011 a 2020",
-    TRUE ~ "Después de 2020"
+    time >= 1955 & time <= 1969 ~ "1955 a 1969",
+    time >= 1970 & time <= 1984 ~ "1970 a 1984",
+    time >= 1985 & time <= 1999 ~ "1985 a 1999",
+    time >= 2000 & time <= 2015 ~ "2000 a 2015",
   ))
 
 # Calcular indicadores resumen
-summary_table <- df %>%
-  group_by(year_category) %>%
+summary_table <- df %>% 
+  group_by(year_category) %>% 
   summarise(
     Total_Suicides = sum(suicide_total, na.rm = TRUE),
     Average_Suicides = mean(suicide_total, na.rm = TRUE),
@@ -54,12 +59,17 @@ summary_table <- df %>%
 kable(summary_table, caption = "Tabla Resumen de Indicadores por Categoría de Año") %>%
   kable_styling(bootstrap_options = c("striped", "hover", "condensed"))
 ```
+La tabla resumen de indicadores por categoría de año muestra las tasas de suicidio desde 1955 hasta 2015, divididas en intervalos de 15 años. 
 
-# Gráfico de Resultados Principales
+Se observa una disminución tanto en el número total de suicidios como en los promedios y medianas en el período de 2000 a 2015, lo que sugiere mejoras en las políticas de prevención del suicidio y el apoyo psicológico durante este tiempo. 
+
+Las intervenciones en salud pública parecen haber tenido un impacto positivo en la reducción de las tasas de suicidio.
+
+## Gráfico de Resultados Principales
 
 A continuación, se presenta un gráfico que muestra la tendencia de las tasas de suicidio a lo largo del tiempo para los principales países.
 
-```{r}
+```{r, message=FALSE, warning=FALSE}
 # Filtrar y preparar los datos para el gráfico
 top_countries <- c("usa", "gbr", "jpn", "fra", "can", "esp")
 filtered_df <- df %>% filter(geo %in% top_countries)
@@ -77,16 +87,103 @@ custom_colors <- c(
 ggplot(filtered_df, aes(x = time, y = suicide_total, color = geo)) +
   geom_line() +
   scale_color_manual(values = custom_colors) +
-  labs(title = "Tendencia de las Tasas de Suicidio por Año y País", x = "Año", y = "Tasa de Suicidio (por 100000 personas)") +
+  labs(title = "Tendencia de las Tasas de Suicidio por Año y País", x = "Año", 
+       y = "Tasa de Suicidio (por 100000 personas)") +
   theme_minimal()
 ```
 
-# Resultados
 
-El análisis de los datos revela varias tendencias interesantes:
+Este es el gráfico principal del dashboard y muestra la tendencia de las tasas de suicidio por 100.000 personas a lo largo de los años en seis países. Se evidencian variaciones significativas en las tendencias de las tasas de suicidio entre los países analizados. 
 
-	1.	Tendencias Temporales: Los gráficos de línea muestran que algunos países como Estados Unidos y Japón tienen tendencias fluctuantes, mientras que países como Francia y Canadá muestran una tendencia decreciente después de picos iniciales.
-	2.	Variación por Grupos de Edad y Género: Las tasas de suicidio varían significativamente entre diferentes grupos de edad y género. Los hombres suelen tener tasas de suicidio más altas en comparación con las mujeres.
-	3.	Picos y Caídas: Algunos países muestran picos específicos en ciertos años, lo cual podría estar relacionado con eventos socioeconómicos o políticas implementadas en esos periodos.
+Algunos países, como Japón y Francia, muestran descensos pronunciados a lo largo del tiempo, posiblemente reflejando mejoras en las políticas de salud mental y prevención del suicidio. 
 
-Estos hallazgos subrayan la importancia de adoptar enfoques personalizados para la prevención del suicidio, considerando las variaciones demográficas y temporales.
+Otros, como Estados Unidos, presentan fluctuaciones con una leve tendencia al alza en las últimas décadas. 
+
+España mantiene las tasas más bajas y estables entre los países analizados. 
+
+Estos patrones subrayan la importancia de las políticas nacionales y los contextos culturales en la comprensión y mitigación de las tasas de suicidio.
+
+## Correlación de Tasa de Suicidio y Países
+
+```{r, message=FALSE, warning=FALSE}
+filtered_data <- df
+
+# Filtrar e preparar os dados para o gráfico
+ggplot(filtered_data, aes(x = geo, y = suicide_total)) +
+  geom_point(aes(color = geo)) +
+  geom_smooth(method = "lm", se = FALSE) +
+  scale_color_manual(values = custom_colors) +
+  labs(x = "Países", y = "Tasa de Suicidio (por 100000 personas)") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
+
+La diferencia en las tasas de suicidio entre los países puede estar influenciada por diversos factores, incluyendo políticas de salud mental, factores socioeconómicos y culturales.
+
+- Japón destaca como el país con mayores desafíos en términos de tasas de suicidio, lo que podría indicar la necesidad de políticas más agresivas y efectivas para la prevención del suicidio.
+
+- España, con las tasas más bajas, podría servir como un caso de estudio para entender qué políticas y factores contribuyen a mantener bajas las tasas de suicidio.
+	
+Este análisis subraya la importancia de un enfoque personalizado y específico para cada país en la implementación de políticas de prevención del suicidio y apoyo psicológico.
+
+## Correlación de Tasa de Suicidio y Edad
+
+```{r, message=FALSE}
+filtered_data <- df
+
+# Filtrar e preparar os dados para o gráfico
+ggplot(filtered_data %>%
+         gather(key = "age_group", value = "suicides", suicide_0_14:suicide_60plus) %>%
+         filter(!is.na(suicides)), 
+       aes(x = age_group, y = suicides)) +
+  geom_point(aes(color = geo)) +
+  geom_smooth(method = "lm", se = FALSE) +
+  scale_color_manual(values = custom_colors) +
+  labs(x = "Grupo de Edad", y = "Tasa de Suicidio (por 100000 personas)") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1),
+        plot.margin = margin(10, 10, 10, 10)) # Ajusta as margens do gráfico
+```
+
+
+El número de suicidios tiende a aumentar con la edad, siendo el grupo de 60 años o más el que presenta el mayor número de suicidios en todos los países, lo que puede indicar que la población mayor es la más vulnerable al suicidio.
+
+Los grupos de edad de 30 a 44 años y de 45 a 59 años presentan una cantidad moderada de suicidios, indicando que los adultos de mediana edad también son un grupo vulnerable.
+
+El grupo de edad de 0 a 14 años presenta el menor número de suicidios, lo que puede indicar que los niños y adolescentes son menos propensos a cometer suicidio, aunque aún existen casos preocupantes.
+
+En resumen, el gráfico destaca la importancia de intervenciones dirigidas a diferentes grupos de edad, especialmente a la población mayor, que muestra un número significativamente mayor de suicidios. Además, las políticas de prevención del suicidio deben considerar las variaciones específicas de cada país para ser efectivas.
+
+## Correlación de Tasa de Suicidio y Genero
+```{r, message=FALSE}
+filtered_data <- df
+
+# Filtrar e preparar os dados para o gráfico
+ggplot(filtered_data %>%
+         gather(key = "gender", value = "suicides", suicide_men, suicide_women) %>%
+         filter(!is.na(suicides)), 
+       aes(x = gender, y = suicides, color = geo)) +
+  geom_point(aes(color = geo)) +
+  geom_smooth(method = "lm", se = FALSE) +
+  scale_color_manual(values = custom_colors) +
+  labs(x = "Género", y = "Tasa de Suicidio (por 100000 personas)") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
+
+El gráfico destaca una diferencia significativa en las tasas de suicidio entre géneros, con los hombres siendo considerablemente más afectados que las mujeres en los seis países analizados. Este hallazgo subraya la necesidad de enfoques específicos por género en las políticas de prevención del suicidio, así como un análisis más profundo de los factores que contribuyen a esta disparidad entre hombres y mujeres.
+
+
+
+## Conclusión
+El análisis de las tasas de suicidio en diferentes países y sus variaciones por edad y género revela varios patrones importantes:
+
+1. **Tendencias Temporales**: Japón y Francia muestran descensos pronunciados en las tasas de suicidio a lo largo del tiempo, posiblemente debido a mejoras en las políticas de salud mental y prevención del suicidio. En cambio, Estados Unidos presenta fluctuaciones con una tendencia ligeramente al alza en las últimas décadas, mientras que España mantiene las tasas más bajas y estables entre los países analizados.
+
+2. **Variación por Edad**: El número de suicidios tiende a aumentar con la edad, siendo el grupo de 60 años o más el más afectado en todos los países. Los adultos de mediana edad también son vulnerables, mientras que los niños y adolescentes presentan el menor número de suicidios. Esto destaca la importancia de intervenciones dirigidas a diferentes grupos de edad, especialmente a la población mayor.
+
+3. **Variación por Género**: Los hombres son significativamente más afectados por el suicidio que las mujeres en todos los países analizados. Este hallazgo subraya la necesidad de enfoques específicos por género en las políticas de prevención del suicidio y un análisis más profundo de los factores que contribuyen a esta disparidad.
+
+4. **Comparación entre Países**: Japón destaca como el país con mayores desafíos en términos de tasas de suicidio, lo que indica la necesidad de políticas más agresivas y efectivas para la prevención del suicidio. Por otro lado, España, con las tasas más bajas, podría servir como un caso de estudio para entender qué políticas y factores contribuyen a mantener bajas las tasas de suicidio.
+
+En resumen, los patrones observados subrayan la importancia de políticas nacionales y contextos culturales en la comprensión y mitigación de las tasas de suicidio. Un enfoque personalizado y específico para cada país, así como para diferentes grupos de edad y género, es esencial para la implementación efectiva de políticas de prevención del suicidio y apoyo psicológico. Las intervenciones en salud pública han demostrado tener un impacto positivo, y la continua mejora y adaptación de estas políticas son fundamentales para reducir las tasas de suicidio a nivel global.
