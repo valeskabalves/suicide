@@ -1,14 +1,17 @@
 ---
-title: "Presentación sobre Suicidio"
+title: "Informe Técnico sobre Suicidio"
 author: "Valeska Alves"
-output: ioslides_presentation
+output:
+  pdf_document: 
+    extra_dependencies: ["longtable"]
+  html_document: default
 ---
 
-```{r setup, include=FALSE}
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+#install.packages("kableExtra")
 library(tidyverse)
 library(knitr)
 library(kableExtra)
-library(ggplot2)
 ```
 
 ## Introducción
