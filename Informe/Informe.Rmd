@@ -31,7 +31,7 @@ Este informe presenta un resumen de las principales conclusiones del análisis d
 ## Tabla Resumen de Indicadores
 ```{r}
 # Leer y procesar los datos
-df <- read.csv("filtered_df.csv")
+df <- read.csv("../Datos/filtered_df.csv")
 
 
 # Filtrar los datos para incluir solo los años de 1955 a 2015
@@ -70,21 +70,20 @@ Las intervenciones en salud pública parecen haber tenido un impacto positivo en
 A continuación, se presenta un gráfico que muestra la tendencia de las tasas de suicidio a lo largo del tiempo para los principales países.
 
 ```{r, message=FALSE, warning=FALSE}
-# Filtrar y preparar los datos para el gráfico
-top_countries <- c("usa", "gbr", "jpn", "fra", "can", "esp")
-filtered_df <- df %>% filter(geo %in% top_countries)
+
+filtered_df <- df
 
 custom_colors <- c(
-  "usa" = "blue",
-  "gbr" = "cyan",
-  "jpn" = "green",
-  "fra" = "orange",
-  "can" = "magenta",
-  "esp" = "red"
+  "Estados Unidos" = "deepskyblue",
+  "Reino Unido" = "mediumslateblue",
+  "Japón" = "palegreen",
+  "Francia" = "chocolate",
+  "Canadá" = "orchid",
+  "España" = "firebrick"
 )
 
 # Generar el gráfico
-ggplot(filtered_df, aes(x = time, y = suicide_total, color = geo)) +
+ggplot(filtered_df, aes(x = time, y = suicide_total, color = country_name)) +
   geom_line() +
   scale_color_manual(values = custom_colors) +
   labs(title = "Tendencia de las Tasas de Suicidio por Año y País", x = "Año", 
@@ -109,8 +108,8 @@ Estos patrones subrayan la importancia de las políticas nacionales y los contex
 filtered_data <- df
 
 # Filtrar e preparar os dados para o gráfico
-ggplot(filtered_data, aes(x = geo, y = suicide_total)) +
-  geom_point(aes(color = geo)) +
+ggplot(filtered_data, aes(x = country_name, y = suicide_total)) +
+  geom_point(aes(color = country_name)) +
   geom_smooth(method = "lm", se = FALSE) +
   scale_color_manual(values = custom_colors) +
   labs(x = "Países", y = "Tasa de Suicidio (por 100000 personas)") +
@@ -136,7 +135,7 @@ ggplot(filtered_data %>%
          gather(key = "age_group", value = "suicides", suicide_0_14:suicide_60plus) %>%
          filter(!is.na(suicides)), 
        aes(x = age_group, y = suicides)) +
-  geom_point(aes(color = geo)) +
+  geom_point(aes(color = country_name)) +
   geom_smooth(method = "lm", se = FALSE) +
   scale_color_manual(values = custom_colors) +
   labs(x = "Grupo de Edad", y = "Tasa de Suicidio (por 100000 personas)") +
@@ -162,8 +161,8 @@ filtered_data <- df
 ggplot(filtered_data %>%
          gather(key = "gender", value = "suicides", suicide_men, suicide_women) %>%
          filter(!is.na(suicides)), 
-       aes(x = gender, y = suicides, color = geo)) +
-  geom_point(aes(color = geo)) +
+       aes(x = gender, y = suicides, color = country_name)) +
+  geom_point(aes(color = country_name)) +
   geom_smooth(method = "lm", se = FALSE) +
   scale_color_manual(values = custom_colors) +
   labs(x = "Género", y = "Tasa de Suicidio (por 100000 personas)") +
