@@ -1,0 +1,408 @@
+---
+title: "M8 Reto1"
+author: "Valeska Barbosa Alves"
+date: "2024-07-08"
+output:
+  word_document: default
+  pdf_document: default
+---
+
+```{r setup, include=FALSE, warning=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+# Set a CRAN mirror
+options(repos = c(CRAN = "https://cran.rstudio.com"))
+```
+
+## Tarea 1. Análisis de datos exploratorio (EDA). Aproximación bottom-up
+
+```{r, warning=FALSE, message=FALSE}
+# Install and load necessary packages
+#tinytex::install_tinytex(force = TRUE)
+#install.packages("MacTeX")
+#install.packages("tinytex")
+#install.packages("ggplot2")
+#install.packages("dplyr")
+#install.packages("gridExtra")
+#install.packages("corrplot")
+library(corrplot)
+library(ggplot2)
+library(dplyr)
+library(purrr)
+library(gridExtra)
+```
+
+```{r, warning=FALSE}
+# URLs
+s_age_0_14_url <- "https://raw.githubusercontent.com/open-numbers/ddf--gapminder--systema_globalis/master/countries-etc-datapoints/ddf--datapoints--suicide_age_0_14_per_100000_people--by--geo--time.csv"
+
+s_age_15_29_url <- "https://raw.githubusercontent.com/open-numbers/ddf--gapminder--systema_globalis/master/countries-etc-datapoints/ddf--datapoints--suicide_age_15_29_per_100000_people--by--geo--time.csv"
+
+s_age_30_44_url <- "https://raw.githubusercontent.com/open-numbers/ddf--gapminder--systema_globalis/master/countries-etc-datapoints/ddf--datapoints--suicide_age_30_44_per_100000_people--by--geo--time.csv"
+
+s_age_45_59_url <- "https://raw.githubusercontent.com/open-numbers/ddf--gapminder--systema_globalis/master/countries-etc-datapoints/ddf--datapoints--suicide_age_45_59_per_100000_people--by--geo--time.csv"
+
+s_age_60plus_url <- "https://raw.githubusercontent.com/open-numbers/ddf--gapminder--systema_globalis/master/countries-etc-datapoints/ddf--datapoints--suicide_age_60plus_per_100000_people--by--geo--time.csv"
+
+s_men_per_100000_url <- "https://raw.githubusercontent.com/open-numbers/ddf--gapminder--systema_globalis/master/countries-etc-datapoints/ddf--datapoints--suicide_men_per_100000_people--by--geo--time.csv"
+
+s_per_100000_url <- "https://raw.githubusercontent.com/open-numbers/ddf--gapminder--systema_globalis/master/countries-etc-datapoints/ddf--datapoints--suicide_per_100000_people--by--geo--time.csv"
+
+s_total_deaths_url <- "https://raw.githubusercontent.com/open-numbers/ddf--gapminder--systema_globalis/master/countries-etc-datapoints/ddf--datapoints--suicide_total_deaths--by--geo--time.csv"
+
+s_women_per_100000_url <- "https://raw.githubusercontent.com/open-numbers/ddf--gapminder--systema_globalis/master/countries-etc-datapoints/ddf--datapoints--suicide_women_per_100000_people--by--geo--time.csv" 
+
+# Read the CSVc
+s_age_0_14 <- read.csv(s_age_0_14_url)
+s_age_15_29 <- read.csv(s_age_15_29_url)
+s_age_30_44 <- read.csv(s_age_30_44_url)
+s_age_45_59 <- read.csv(s_age_45_59_url)
+s_age_60plus <- read.csv(s_age_60plus_url)
+s_men_per_100000 <- read.csv(s_men_per_100000_url)
+s_per_100000 <- read.csv(s_per_100000_url)
+s_total_deaths <- read.csv(s_total_deaths_url)
+s_women_per_100000 <- read.csv(s_women_per_100000_url)
+```
+
+```{r, warning=FALSE}
+# Merge all dfs by 'geo' and 'time'
+merged_df <- reduce(list(s_age_0_14, s_age_15_29, s_age_30_44, s_age_45_59, s_age_60plus, s_men_per_100000, s_per_100000, s_total_deaths, s_women_per_100000),
+function(x, y) merge(x, y, by = c("geo", "time"), all = TRUE))
+```
+
+```{r, warning=FALSE}
+colnames(merged_df)
+```
+
+```{r, warning=FALSE}
+merged_df <- merged_df %>% rename(
+  suicide_0_14 = suicide_age_0_14_per_100000_people,
+  suicide_15_29 = suicide_age_15_29_per_100000_people,
+  suicide_30_44 = suicide_age_30_44_per_100000_people,
+  suicide_45_59 = suicide_age_45_59_per_100000_people,
+  suicide_60plus = suicide_age_60plus_per_100000_people,
+  suicide_men = suicide_men_per_100000_people,
+  suicide_total = suicide_per_100000_people,
+  suicide_deaths = suicide_total_deaths,
+  suicide_women = suicide_women_per_100000_people
+)
+```
+
+```{r, warning=FALSE}
+
+new_order <- c("geo", "time", "suicide_0_14", "suicide_15_29", "suicide_30_44", "suicide_45_59","suicide_60plus", "suicide_men", "suicide_women", "suicide_total", "suicide_deaths" )
+
+merged_df <- merged_df[, new_order]
+```
+```{r, warning=FALSE}
+colnames(merged_df)
+```
+
+### - Estudiar y describir los datos del conjunto de datos elegido y explorar sus relaciones.
+- **geo**: Identificador geográfico (país). Son categóricos (nombres de países).
+- **time**: Año. Es un dato temporal.
+Las columnas de tasa de suicidio son datos numéricos que representan la tasa de suicidio por 100.000 personas.
+- **suicide_0_14**: Tasa de suicidio por 100.000 personas en el grupo de edad de 0 a 14 años.
+- **suicide_15_29**: Tasa de suicidio por 100.000 personas en el grupo de edad de 15 a 29 años.
+- **suicide_30_44**: Tasa de suicidio por 100.000 personas en el grupo de edad de 30 a 44 años.
+-	**suicide_45_59**: Tasa de suicidio por 100.000 personas en el grupo de edad de 45 a 59 años.
+- **suicide_60plus**: Tasa de suicidio por 100.000 personas en el grupo de edad de 60 años o más.
+- **suicide_men**: Tasa de suicidio por 100.000 hombres.
+- **suicide_women**: Tasa de suicidio por 100.000 mujeres.
+- **suicide_total**: Tasa total de suicidio por 100.000 personas.
+- **suicide_deaths**: Número total de muertes por suicidio. Es dato numérico que representan el número total de muertes por suicidio.
+
+
+```{r, warning=FALSE}
+head(merged_df)
+```
+	
+```{r, warning=FALSE}
+str(merged_df)
+```
+### - Analizar los datos y la documentación asociada y para cada campo clarificar qué tipo de datos es, si tiene naturaleza temporal o geográfica, cual es el rango de valores y el dominio, qué unidades usa y qué precisión requiere.
+
+
+
+- **Distribución de los datos**: Hay 8099 observaciones en total, con identificadores geográficos que representan diferentes países.
+- **Vigencia**: Los datos cubren un período de 70 años, desde 1950 hasta 2019.
+- **Recomendaciones**: Se debe considerar el tratamiento adecuado de los valores faltantes para garantizar la integridad del análisis. Hay un número considerable de valores faltantes (NA’s) en todas las columnas, lo que pode afectar el análisis y la interpretación de los datos.
+
+```{r, warning=FALSE}
+summary(merged_df)
+```
+### - Observar distribución y outliers. ¿Qué vigencia tienen los datos? ¿Cada cuánto se deben actualizar?
+
+Analizando la distribución de las tasas de suicidio mediante histogramas y boxplots:
+
+1. **Suicide_0_14**: La mayoría de los valores están cerca de cero, indicando tasas de suicidio generalmente bajas en este grupo de edad. La mediana confirma esta rareza, pero hay outliers significativos.
+
+2. **Suicide_15_29**: Hay observaciones significativas con tasas entre 0 y 20 por 100,000 personas, con algunos valores extremos. Las medianas y los cuartiles indican variabilidad común, con outliers en años y países específicos.
+
+3. **Suicide_30_44**: Similar al grupo de edad de 15 a 29, pero con una distribución más amplia. Las medianas y los cuartiles muestran variabilidad común, con outliers en años y países específicos.
+
+4. **Suicide_45_59**: Los valores se distribuyen uniformemente entre 0 y 50 por 100,000 personas, sugiriendo una mayor incidencia de suicidios en este grupo de edad. Las medianas más altas indican una mayor incidencia, con outliers frecuentes.
+
+5. **Suicide_60plus**: Hay una presencia considerable de valores más altos, indicando una preocupación significativa por el suicidio entre los ancianos. Las medianas más altas reflejan una mayor incidencia, con outliers frecuentes.
+
+6. **Suicide_men y Suicide_women**: Las tasas de suicidio son generalmente más altas entre los hombres. La mediana para hombres es más alta, reflejando una mayor tasa de suicidio. Los outliers son más pronunciados entre los hombres.
+
+7. **Suicide_total**: La distribución general muestra una variación amplia, con muchos valores concentrados en niveles más bajos, pero con una larga cola derecha indicando casos de tasas muy altas. Las medianas y los cuartiles muestran esta variación, con outliers indicando años y países con tasas excepcionalmente altas.
+
+8. **Suicide_deaths**: El número total de muertes por suicidio varía ampliamente, con muchas observaciones en valores más bajos y algunas extremadamente altas, indicando eventos significativos en ciertos años y países. Las medianas y los cuartiles muestran esta distribución amplia, con outliers significativos.
+
+
+```{r, warning=FALSE}
+histogram_list <- list()
+
+# Criar histogramas para todas as colunas numéricas
+numeric_cols <- merged_df %>% select(-geo, -time)
+numeric_cols_names <- colnames(numeric_cols)
+
+
+# Criar histogramas para todas as colunas numéricas
+for (col in numeric_cols_names) {
+  p <- ggplot(merged_df, aes_string(x = col)) +
+    geom_histogram(binwidth = 1, fill = "dodgerblue3", color = "black", alpha = 0.7) +
+    labs(title = paste(col), x = col, y = "Frequency") +
+    theme_minimal(base_size = 10)
+  histogram_list[[col]] <- p
+}
+
+do.call("grid.arrange", c(histogram_list, ncol=3))
+```
+
+```{r, warning=FALSE, message=FALSE}
+# Create a list to store the plots
+plot_list <- list()
+
+# Select numeric columns excluding 'geo' and 'time'
+numeric_cols <- merged_df %>% select(-geo, -time)
+numeric_cols_names <- colnames(numeric_cols)
+
+# Create boxplots for all numeric columns and store them in the list
+for (col in numeric_cols_names) {
+  p <- ggplot(merged_df, aes_string(y = col)) +
+    geom_boxplot(fill = "dodgerblue2", color = "black", alpha = 0.7) +
+    labs(title = paste(col), y = "Tasa de Suicídio") +
+    theme_minimal(base_size = 10)
+  plot_list[[col]] <- p
+}
+
+# Arrange the plots in a grid, 3 plots per row
+do.call("grid.arrange", c(plot_list, ncol = 3))
+```
+
+### - Identificar agrupaciones y relaciones entre los distintos campos y su naturaleza.
+
+Conforme muestra el gráfico de correlación, las correlaciones más fuertes en las tasas de suicídio son:
+- Suicídio de hombres con edades entre 30 y 44 y 45 y 59 años.
+
+```{r, warning=FALSE}
+# Matriz de correlação
+cor_matrix <- cor(numeric_cols, use = "complete.obs")
+
+# Mapa de calor de correlação
+corrplot(cor_matrix, method = "circle")
+
+# Gráficos de dispersão entre algumas variáveis
+pairs(numeric_cols)
+```
+
+### - Crear algunos gráficos para explorar distribuciones y relaciones.
+
+El gráfico muestra la tendencia de las tasas de suicidio a lo largo del tiempo en los 6 países más influyentes, desde 1950 hasta 2020. 
+Estados Unidos y Japón presentan aumentos iniciales con subsecuentes estabilizaciones, mientras que Francia y Canadá muestran una tendencia general de disminución después de picos iniciales. 
+El Reino Unido mantiene tasas relativamente estables, y España tiene consistentemente las tasas más bajas. 
+Estas variaciones indican la influencia de factores socioeconómicos y culturales, destacando la necesidad de políticas públicas adaptadas a cada contexto temporal y regional.
+
+```{r, warning=FALSE}
+# Exibir os 10 países mais influentes
+top_countries <- c("usa", "gbr", "jpn", "fra", "can", "esp")
+
+geo_names <- c("usa" = "Estados Unidos", "gbr" = "Reino Unido", "jpn" = "Japão", 
+               "fra" = "França", "can" = "Canadá", "esp" = "Espanha")
+
+filtered_df <- merged_df %>% filter(geo %in% top_countries)
+filtered_df <- filtered_df %>% mutate(country_name = geo_names[geo])
+```  
+
+```{r, warning=FALSE}
+custom_colors <- c(
+  "usa" = "blue",
+  "gbr" = "cyan",
+  "jpn" = "green",
+  "fra" = "orange",
+  "can" = "magenta",
+  "esp" = "red"
+)
+
+# Gráfico de linha para as taxas de suicídio ao longo do tempo
+ggplot(filtered_df, aes(x = time, y = suicide_total, color = geo)) +
+  geom_line() +
+  scale_color_manual(values = custom_colors) +
+  labs(title = "Tendência das taxas de suicídio ao longo do tempo dos 10 países mais influentes", x = "Ano", y = "Taxa de suicídio (por 100000 pessoas)") +
+  theme_minimal()
+```  
+
+### - A partir del estudio exploratorio, determinar los campos a incluir en la visualización final y el tipo de relaciones a destacar.
+
+- time (año)
+- geo (país)
+- suicide_total (tasa total de suicidio)
+- suicide_men (tasa de suicidio entre hombres)
+- suicide_women (tasa de suicidio entre mujeres)
+- suicide_15_29, suicide_30_44, suicide_45_59, suicide_60plus (tasas de suicidio en diferentes grupos de edad)
+
+Las relaciones a ser destacadas incluyen:
+
+- Tendencias temporales de las tasas de suicidio por país.
+- Comparaciones de las tasas de suicidio entre diferentes grupos de edad y géneros.
+- Identificación de valores atípicos y análisis detallado de estos casos.
+
+```{r, warning=FALSE}
+# Nome do arquivo CSV de saída
+output_file <- "merged_df.csv"
+
+# Exportar o dataframe para um arquivo CSV
+write.csv(merged_df, file = output_file, row.names = FALSE)
+```
+
+## Tarea 2. Audiencia y objetivo. Aproximación top-down
+
+### - Definir a las destinatarias de vuestro dashboard.
+
+Los destinatarios serán investigadores y profesionales sanitarios que trabajan directamente con prevención del suicidio y el apoyo psicológico.
+
+### - Nivel de conocimiento de la materia y de la visualización de datos, plataforma principal a utilizar, contexto y periodicidad de uso.
+
+Se supone que los destinatarios tienen conocimientos de salud pública y prevención del suicidio y familiaridad básica con gráficos e interpretación de datos.
+
+### - Plantear entre 3 y 7 preguntas que vuestra audiencia piensa resolver con la visualización.
+
+1. ¿Cuáles son las tendencias temporales de las tasas de suicidio en diferentes países durante los últimos años?
+
+2. ¿Cómo varían las tasas de suicidio entre los diferentes grupos de edad y género en cada país?
+
+3. ¿Qué países tienen los mayores picos o caídas en las tasas de suicidio y en qué años ocurrieron estos eventos?
+
+4. ¿Existen correlaciones significativas entre las tasas de suicidio de diferentes grupos de edad o entre géneros?
+
+5. ¿Cuáles son los valores atípicos en las tasas de suicidio y qué países y años están asociados con estos valores atípicos?
+
+6. ¿Las políticas de prevención del suicidio implementadas en ciertos años dieron como resultado cambios significativos en las tasas de suicidio?
+
+
+## Tarea 3. Selección de gráficos y codificación
+
+### - Elegir los gráficos a utilizar en el dashboard. Justificar la decisión en base a su función y objetivos que se persiguen y a los datos a visualizar.
+
+- **Gráficos de Línea**: Estos gráficos son ideales para mostrar cómo las tasas de suicidio cambian a lo largo del tiempo en diferentes países. Permiten identificar tendencias, picos y caídas.
+
+- **Gráficos de Barras Agrupadas**: Permiten la comparación directa entre diferentes grupos de edad y géneros, facilitando la visualización de diferencias significativas entre estos grupos.
+
+- **Boxplots**: Son eficaces para identificar valores atípicos y la dispersión de los datos. Esto ayuda a destacar años y países con valores de suicidio excepcionalmente altos o bajos.
+
+- **Matriz de Correlación**: Ayuda a visualizar la relación entre diferentes variables, mostrando qué grupos de edad y géneros tienen tasas de suicidio correlacionadas.
+
+- **Mapas de Calor**: Muestran la distribución geográfica de las tasas de suicidio, facilitando la identificación de áreas con altas o bajas tasas.
+
+### - Decidir la codificación de las variables a visualizar.
+
+- **Eixo X (Gráficos de Línea y Barras)**: Año (time)
+
+- **Eixo Y (Gráficos de Línea y Barras)**: Tasas de suicidio (suicide_total, suicide_men, suicide_women, suicide_15_29, suicide_30_44, suicide_45_59, suicide_60plus)
+
+- **Colores**: Diferenciación entre países (geo), grupos de edad y géneros.
+
+- **Etiquetas**: Países y años relevantes (en casos de valores atípicos y puntos específicos en el tiempo).
+
+
+### - Relacionar las decisiones con la teoría de la percepción.
+
+- **Gráficos de Línea**: Siguen principios de continuidad, facilitando la percepción de tendencias a lo largo del tiempo.
+
+- **Gráficos de Barras Agrupadas**: Facilitan la comparación entre grupos, permitiendo un análisis rápido de las diferencias entre grupos de edad y géneros.
+
+- **Boxplots**: Claramente destacan valores atípicos, mediana y cuartiles, permitiendo una evaluación rápida de la dispersión de los datos.
+
+- **Matriz de Correlación**: Utiliza colores para representar la fuerza de las correlaciones, facilitando la identificación de relaciones fuertes o débiles.
+
+- **Mapas de Calor**: Utilizan gradientes de colores para representar diferentes magnitudes, facilitando la identificación de patrones geográficos.
+	
+	
+### - Detallar escalas y unidades utilizadas.
+
+- **Escalas de Tiempo**: Años (time)
+
+- **Unidades de Medida**: Tasas de suicidio medidas por 100.000 personas.
+
+- **Colores**: Colores distintos para diferentes países y grupos de edad, utilizando una paleta de colores que sea fácilmente distinguible y amigable para personas con daltonismo.
+
+- **Ejes Y**: Serán ajustados para cada gráfico específico de acuerdo con la variable de interés (tasa total, por grupo de edad, por género).
+
+
+## Tarea 4. Disposición e Interacción
+
+### - Definir la disposición de los gráficos en el Dashboard en base a su función y a los principios de Gestalt.
+
+Principios de Gestalt:
+
+1. Proximidad: Agrupar gráficos relacionados cerca unos de otros.
+2. Similitud: Utilizar colores y estilos similares para gráficos que representan 
+tipos de datos similares.
+3. Continuidad: Alinear gráficos que muestran tendencias temporales.
+4. Conexión: Usar líneas y flechas para mostrar conexiones directas entre datos 
+relacionados.
+	
+Disposición del Dashboard:
+
+Fila 1 
+
+- **Gráfico de Línea**: Tasas Promedio de Suicidio por Año
+- **Gráfico de Línea**: Tasas Promedio de Suicidio por Año
+
+Fila 2:
+
+- **Gráfico de Barras**: Tasas Promedio de Suicidio por Edad
+- **Gráfico de Barras**: Tasas Promedio de Suicidio por Género
+
+Fila 3:
+
+- **Gráfico de Dispersion**: Correlación de Tasa de Suicidio y Edad
+- **Gráfico de Dispersion**: Correlación de Tasa de Suicidio y Género
+
+Fila 4:
+
+- **Boxplot**: Análisis de valores Atípicos por País.
+- **Mapa de Calor**: Correlación de Tasa de Suicidio y Países
+	
+Fila 5
+
+- **Mapa coroplético**: Mostrar en colores más fuertes los países con mayor tasa
+de suicidio
+
+
+### - Describir la interacción en cada gráfico y entre gráficos.
+
+Interacciones en el Dashboard:
+
+El dashboard tendrá una sección de filtros con la que el usuario podrá interactuar y, con cada filtro aplicado, todos los gráficos se actualizarán automáticamente.
+
+Además, el usuario podrá aplicar la función de zoom y pan en el mapa.
+
+Todos los gráficos tendrán tooltips.
+	
+### - Relacionarla con los modelos de interacción vistos en los contenidos de la asignatura.
+
+Modelos de Interacción Aplicados:
+
+1.	Manipulación Directa: Los usuarios pueden interactuar directamente con los gráficos para hacer zoom, pan y seleccionar intervalos de datos. Esto se relaciona con la idea de que los usuarios aprenden y entienden mejor cuando pueden manipular los datos directamente.
+
+2.	Feedback Inmediato: Los tooltips y la información adicional que aparece al interactuar con los gráficos proporcionan un feedback inmediato, ayudando a los usuarios a entender mejor los datos sin perder el contexto.
+
+3.	Exploración Guiada: Los filtros dinámicos y la capacidad de resaltar datos específicos guían a los usuarios en la exploración de los datos, permitiéndoles descubrir patrones y relaciones que pueden no ser evidentes a simple vista.
+
+## Tarea 5. Bocetos iniciales
+
+- Crear algunos diseños iniciales del dashboard (a lápiz, en PowerPoint, con una herramienta de dibujo…) y comentarlos.
+- Mostrar como estos diseños resuelven las preguntas planteadas en la Tarea 2.

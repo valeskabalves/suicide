@@ -33,19 +33,6 @@ Este informe presenta un resumen de las principales conclusiones del análisis d
 # Leer y procesar los datos
 df <- read.csv("../Datos/filtered_df.csv")
 
-
-# Filtrar los datos para incluir solo los años de 1955 a 2015
-df <- df %>% filter(time >= 1955 & time <= 2015)
-
-# Dividir los años en hasta 5 períodos
-df <- df %>% 
-  mutate(year_category = case_when(
-    time >= 1955 & time <= 1969 ~ "1955 a 1969",
-    time >= 1970 & time <= 1984 ~ "1970 a 1984",
-    time >= 1985 & time <= 1999 ~ "1985 a 1999",
-    time >= 2000 & time <= 2015 ~ "2000 a 2015",
-  ))
-
 # Calcular indicadores resumen
 summary_table <- df %>% 
   group_by(year_category) %>% 
